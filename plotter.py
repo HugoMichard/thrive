@@ -5,9 +5,9 @@ import numpy as np
 
 class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
-    def __init__(self, simulator, numpoints=50, fps=1):
-        self.numpoints = numpoints
-        self.fps = fps
+    def __init__(self, simulator):
+        self.fps = simulator.fps
+        self.map_size = simulator.map_size
         self.simulator = simulator
         self.stream = self.data_stream()
 
@@ -22,7 +22,7 @@ class AnimatedScatter(object):
         x, y, s, c = next(self.stream).T
         self.scat = self.ax.scatter(x, y, c=c, s=s, vmin=0, vmax=1,
                                     cmap="jet", edgecolor="k")
-        self.ax.axis([-10, 10, -10, 10])
+        self.ax.axis([-self.map_size // 2, self.map_size // 2, -self.map_size // 2, self.map_size // 2])
         # For FuncAnimation's sake, we need to return the artist we'll be using
         # Note that it expects a sequence of artists, thus the trailing comma.
         return self.scat,
@@ -30,15 +30,9 @@ class AnimatedScatter(object):
     def data_stream(self):
         """Generate a random walk (brownian motion). Data is scaled to produce
         a soft "flickering" effect."""
-        s, c = np.random.random((self.numpoints, 2)).T
         while True:
             self.simulator.simulate()
-            xs = [self.simulator.animals.x]
-            ys = [self.simulator.animals.y]
-
-            # s += 0.05 * (np.random.random(self.numpoints) - 0.5)
-            c = [self.simulator.animals.color]
-
+            xs, ys, c, s, detections, visibilities = self.simulator.get_entities_display()
             yield np.c_[xs, ys, s, c]
 
     def update(self, i):
@@ -48,9 +42,10 @@ class AnimatedScatter(object):
         # Set x and y data...
         self.scat.set_offsets(data[:, :2])
         # Set sizes...
-        self.scat.set_sizes(300 * abs(data[:, 2])**1.5 + 100)
+        self.scat.set_sizes(data[:, 2])
         # Set colors..
         self.scat.set_array(data[:, 3])
+        print(i, flush=True, end='\n')
 
         # We need to return the updated artist for FuncAnimation to draw..
         # Note that it expects a sequence of artists, thus the trailing comma.
