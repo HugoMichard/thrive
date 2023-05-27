@@ -9,6 +9,7 @@ class Simulator:
     def __init__(self, map_size, fps, starting_entities) -> None:
         self.fps = fps
         self.map_size = map_size
+        self.max_map_value = map_size - map_size // 2
         self.entities = {}
         idx = 0
         for entity_cls in starting_entities:

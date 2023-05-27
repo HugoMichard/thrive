@@ -12,7 +12,7 @@ class AnimatedScatter(object):
         self.stream = self.data_stream()
 
         # Setup the figure and axes...
-        self.fig, self.ax = plt.subplots()
+        self.fig, self.ax = plt.subplots(dpi=72)
         # Then setup FuncAnimation.
         self.ani = animation.FuncAnimation(self.fig, self.update, interval=1000 / self.fps,
                                           init_func=self.setup_plot, blit=True)
@@ -42,7 +42,9 @@ class AnimatedScatter(object):
         # Set x and y data...
         self.scat.set_offsets(data[:, :2])
         # Set sizes...
-        self.scat.set_sizes(data[:, 2])
+        sizes = data[:, 2]
+        points_radius = sizes / self.map_size * self.fig.get_figwidth() * 0.8 * self.fig.get_dpi()
+        self.scat.set_sizes(points_radius**2)
         # Set colors..
         self.scat.set_array(data[:, 3])
         print(i, flush=True, end='\n')

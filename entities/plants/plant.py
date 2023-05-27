@@ -5,11 +5,9 @@ from entities.entity import Entity
 class Plant(Entity):
     def __init__(self, simulator, params) -> None:
         super().__init__(simulator, params)
-        self.drink_speed = 1
-        self.eat_speed = 1
-        self.reproduce_speed = 5
+        self.reproduce_speed = 10000000
         self.reproduce_timer = 0
-        self.max_expansion_distance = 10
+        self.expansion_distance = 10
 
     def animate(self):
         super().animate()
@@ -32,9 +30,16 @@ class Plant(Entity):
             self.reproduce_timer += 1
 
     def give_birth(self):
+        max_expansion_distance = self.size // 2 + self.expansion_distance
+        random_x = np.random.randint(max_expansion_distance) - (max_expansion_distance / 2)
+        random_y = np.random.randint(max_expansion_distance) - (max_expansion_distance / 2)
+        birth_x = self.x + random_x
+        birth_y = self.y + random_y
+        birth_x = min(max(0, birth_x), self.simulator.max_map_value)
+        birth_y = min(max(0, birth_y), self.simulator.max_map_value)
         params = {
             'id': self.simulator.last_entity_id + 1,
-            'x': self.x + np.random.randint(self.max_expansion_distance),
-            'y': self.y + np.random.randint(self.max_expansion_distance)
+            'x': birth_x,
+            'y': birth_y
         }
         self.simulator.add_entity(Plant(self.simulator, params))

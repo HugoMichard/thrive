@@ -5,7 +5,7 @@ class Entity:
         self.y = params['y']
         self.detection_range = 1.
         self.visibility_range = 1.
-        self.size = 100.
+        self.size = 1.
         self.color = 0
         self.water_need = 10
         self.food_need = 10
@@ -19,11 +19,12 @@ class Entity:
         self.health = self.max_health
         self.corpse_decomposition_speed = 10
         self.dead_time = 0
-        # self.drink_speed = self.water_need * 10
-        # self.eat_speed = self.water_need * 8
-        self.drink_speed = 1
-        self.eat_speed = 1
+        self.drink_speed = self.water_need * 10
+        self.eat_speed = self.water_need * 8
+        # self.drink_speed = 1
+        # self.eat_speed = 1
         self.age = 0
+        self.overlapping_entities = []
 
     def animate(self):
         if self.is_dead:
@@ -32,8 +33,19 @@ class Entity:
                 del self.simulator.entities[self.id]
             return
 
+        self.overlapping_entities = [e for e in self.simulator.entities.values() if self.check_if_overlaps_entity(e)]
+        print("I'm overlapping with : ")
+        print(self.overlapping_entities)
         self.fill_needs()
         self.grow()
+
+    def check_if_overlaps_entity(self, entity):
+        is_different = entity.id != self.id
+        radius = self.size // 2
+        other_radius = entity.size // 2
+        x_overlaps = (self.x < entity.x and self.x + radius > entity.x - other_radius) or (self.x > entity.x and self.x - radius < entity.x + other_radius)
+        y_overlaps = (self.y < entity.y and self.y + radius > entity.y - other_radius) or (self.y > entity.y and self.y - radius < entity.y + other_radius)
+        return is_different and x_overlaps and y_overlaps
 
     def move(self):
         pass
