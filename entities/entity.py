@@ -40,8 +40,7 @@ class Entity:
         self.update_senses()
 
         self.overlapping_entities = [e for e in self.simulator.entities.values() if e.id != self.id and self.position_circle.check_if_overlaps(e.position_circle)]
-        print("I'm overlapping with : ")
-        print(self.overlapping_entities)
+        self.simulator.logger.add_log(f"I'm overlapping with : {[e.id for e in self.overlapping_entities]}")
         self.fill_needs()
         self.grow()
 

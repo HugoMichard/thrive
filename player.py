@@ -7,11 +7,15 @@ app = Dash(__name__)
 
 class Data:
     def __init__(self) -> None:
-        self.load_data()        
+        self.load_data()
+        self.load_logs()
         self.frame = 0
 
     def load_data(self):
         self.df = pd.read_csv('/home/hugo/Projects/thrive/frames.csv')
+    
+    def load_logs(self):
+        self.logs = pd.read_csv('/home/hugo/Projects/thrive/logs.csv')
     
     def plot(self):
         df = self.df
@@ -28,9 +32,12 @@ class Data:
         #     mode="text",
         # ))
 
+        min_range = min((df['x'] - df['size']).min(), (df['y'] - df['size']).min())
+        max_range = max((df['x'] + df['size']).max(), (df['y'] + df['size']).max())
+
         # Set axes properties
-        fig.update_xaxes(range=[(df['x'] - df['size']).min(), (df['x'] + df['size']).max()], zeroline=False)
-        fig.update_yaxes(range=[(df['y'] - df['size']).min(), (df['y'] + df['size']).max()])
+        fig.update_xaxes(range=[min_range, max_range], zeroline=False)
+        fig.update_yaxes(range=[min_range, max_range])
 
         for index, row in df.iterrows():
             r = row['size']
@@ -44,12 +51,21 @@ class Data:
         fig.update_layout(width=800, height=800)
         return fig
 
+    def get_logs(self):
+        logs = self.logs.loc[self.logs['frame'] == self.frame]
+        return [html.Li(i) for i in ['Frame ' + str(self.frame)] + list(logs['log'])]
+
 
 data = Data()
 
 
 app.layout = html.Div([
     dcc.Graph(id="graph"),
+    html.Div(
+        children=[
+            html.Ul(id='log-output', children=[])
+        ],
+    ),
     dcc.Slider(0, 1000, 1,
                value=0,
                id='frame-slider'
@@ -65,22 +81,29 @@ app.layout = html.Div([
     prevent_initial_call=True)
 def update_graph(slider_value, refresh_value):
     triggered_id = ctx.triggered_id
-    print(triggered_id)
 
     if triggered_id == 'frame-slider':
-        update_frame(slider_value)
+        data.frame = slider_value
     elif triggered_id == 'refresh-df':
-        refresh_data()
+        data.load_data()
     
     return data.plot()
 
 
-def update_frame(frame):
-    data.frame = frame
+@app.callback(
+    Output("log-output", "children"), 
+    Input('frame-slider', 'value'),
+    Input('refresh-df', 'n_clicks'),
+    prevent_initial_call=True)
+def update_logs(slider_value, refresh_value):
+    triggered_id = ctx.triggered_id
 
-
-def refresh_data():
-    data.load_data()
+    if triggered_id == 'frame-slider':
+        data.frame = slider_value
+    elif triggered_id == 'refresh-df':
+        data.load_logs()
+    
+    return data.get_logs()
 
 
 app.run_server(debug=True, use_reloader=False)  # Turn off reloader if inside Jupyter

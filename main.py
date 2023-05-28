@@ -6,5 +6,5 @@ starting_entities = [
 ]
 
 if __name__ == '__main__':
-    s = Simulator(map_size=50, fps=1, starting_entities=starting_entities)
+    s = Simulator(map_size=500, fps=5, starting_entities=starting_entities)
     s.launch()

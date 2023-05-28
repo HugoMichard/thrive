@@ -2,6 +2,7 @@ from typing import Dict
 import csv
 import time
 from entities.entity import Entity
+from logger import Logger
 import numpy as np
 
 
@@ -10,6 +11,12 @@ class Simulator:
         with open("/home/hugo/Projects/thrive/frames.csv", "w") as f:
             writer = csv.writer(f)
             writer.writerow(['frame', 'id', 'x', 'y', 'color', 'size'])
+
+        with open("/home/hugo/Projects/thrive/logs.csv", "w") as f:
+            writer = csv.writer(f)
+            writer.writerow(['frame', 'log'])
+
+        self.logger = Logger()
         self.fps = fps
         self.frame = 0
         self.map_size = map_size
@@ -25,12 +32,17 @@ class Simulator:
 
     def launch(self):
         while True:
+            self.logger.reset_logs()
             print(f'Simulating frame {self.frame}')
             self.simulate()
 
             with open("/home/hugo/Projects/thrive/frames.csv", "a") as f:
                 writer = csv.writer(f)
                 writer.writerows([[self.frame, entity.id, entity.x, entity.y, entity.color, entity.size] for entity in self.entities.values()])
+
+            with open("/home/hugo/Projects/thrive/logs.csv", "a") as f:
+                writer = csv.writer(f)
+                writer.writerows(self.logger.format_rows_for_frame(self.frame))
 
             self.frame += 1
             time.sleep(1 / self.fps)
