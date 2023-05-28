@@ -1,3 +1,6 @@
+from circle_helper import Circle
+
+
 class Entity:
     def __init__(self, simulator, params) -> None:
         self.id = params['id']
@@ -24,6 +27,7 @@ class Entity:
         # self.drink_speed = 1
         # self.eat_speed = 1
         self.age = 0
+        self.position_circle = Circle(self.x, self.y, self.size)
         self.overlapping_entities = []
 
     def animate(self):
@@ -33,19 +37,16 @@ class Entity:
                 del self.simulator.entities[self.id]
             return
 
-        self.overlapping_entities = [e for e in self.simulator.entities.values() if self.check_if_overlaps_entity(e)]
+        self.update_senses()
+
+        self.overlapping_entities = [e for e in self.simulator.entities.values() if e.id != self.id and self.position_circle.check_if_overlaps(e.position_circle)]
         print("I'm overlapping with : ")
         print(self.overlapping_entities)
         self.fill_needs()
         self.grow()
 
-    def check_if_overlaps_entity(self, entity):
-        is_different = entity.id != self.id
-        radius = self.size // 2
-        other_radius = entity.size // 2
-        x_overlaps = (self.x < entity.x and self.x + radius > entity.x - other_radius) or (self.x > entity.x and self.x - radius < entity.x + other_radius)
-        y_overlaps = (self.y < entity.y and self.y + radius > entity.y - other_radius) or (self.y > entity.y and self.y - radius < entity.y + other_radius)
-        return is_different and x_overlaps and y_overlaps
+    def update_senses(self):
+        self.position_circle = Circle(self.x, self.y, self.size)
 
     def move(self):
         pass
