@@ -41,10 +41,12 @@ class Data:
 
         for index, row in df.iterrows():
             r = row['size']
+            color = f"#{row['color']}"
             fig.add_shape(type="circle",
                 xref="x", yref="y",
                 x0=row['x']-r, y0=row['y']-r, x1=row['x']+r, y1=row['y']+r,
-                line_color="LightSeaGreen"
+                line_color=color,
+                fillcolor=color
             )
     
         # Set figure size
@@ -58,7 +60,6 @@ class Data:
 
 data = Data()
 
-
 app.layout = html.Div([
     dcc.Graph(id="graph"),
     html.Div(
@@ -66,44 +67,37 @@ app.layout = html.Div([
             html.Ul(id='log-output', children=[])
         ],
     ),
+    html.Button('Play', id='play'),
     dcc.Slider(0, 1000, 1,
                value=0,
                id='frame-slider'
     ),
-    html.Button('Refresh df', id='refresh-df')
+    html.Button('Refresh', id='refresh-df'),
+    dcc.Interval(
+        id="play-interval", interval=1 * 1000, n_intervals=0
+    ),
 ])
 
 
 @app.callback(
-    Output("graph", "figure"), 
+    Output("graph", "figure"),
+    Output("log-output", "children"),
     Input('frame-slider', 'value'),
     Input('refresh-df', 'n_clicks'),
+    Input("play", "n_clicks"),
+    Input("play-interval", "n_intervals"),
     prevent_initial_call=True)
-def update_graph(slider_value, refresh_value):
+def update_graph(slider_value, refresh_value, play_clicks, interval):
     triggered_id = ctx.triggered_id
 
     if triggered_id == 'frame-slider':
         data.frame = slider_value
     elif triggered_id == 'refresh-df':
         data.load_data()
+    elif triggered_id == 'play-interval' and play_clicks is not None and play_clicks % 2 == 1:
+        data.frame += 1
     
-    return data.plot()
-
-
-@app.callback(
-    Output("log-output", "children"), 
-    Input('frame-slider', 'value'),
-    Input('refresh-df', 'n_clicks'),
-    prevent_initial_call=True)
-def update_logs(slider_value, refresh_value):
-    triggered_id = ctx.triggered_id
-
-    if triggered_id == 'frame-slider':
-        data.frame = slider_value
-    elif triggered_id == 'refresh-df':
-        data.load_logs()
-    
-    return data.get_logs()
+    return data.plot(), data.get_logs()
 
 
 app.run_server(debug=True, use_reloader=False)  # Turn off reloader if inside Jupyter

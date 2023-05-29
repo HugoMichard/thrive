@@ -9,7 +9,7 @@ class Entity:
         self.detection_range = 1.
         self.visibility_range = 1.
         self.size = 1.
-        self.color = 0
+        self.color = '000000'
         self.water_need = 10
         self.food_need = 10
         self.max_food_reserve = 100

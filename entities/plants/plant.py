@@ -8,6 +8,7 @@ class Plant(Entity):
         self.reproduce_speed = 10000000
         self.reproduce_timer = 0
         self.expansion_distance = 10
+        self.color = "00ba32"
 
     def animate(self):
         super().animate()
