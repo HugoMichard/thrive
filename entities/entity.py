@@ -27,6 +27,7 @@ class Entity:
         # self.drink_speed = 1
         # self.eat_speed = 1
         self.age = 0
+        self.reproduce_timer = 0
         self.position_circle = Circle(self.x, self.y, self.size)
         self.overlapping_entities = []
 
@@ -40,7 +41,6 @@ class Entity:
         self.update_senses()
 
         self.overlapping_entities = [e for e in self.simulator.entities.values() if e.id != self.id and self.position_circle.check_if_overlaps(e.position_circle)]
-        self.simulator.logger.add_log(f"I'm overlapping with : {[e.id for e in self.overlapping_entities]}")
         self.fill_needs()
         self.grow()
 

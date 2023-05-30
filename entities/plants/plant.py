@@ -5,9 +5,9 @@ from entities.entity import Entity
 class Plant(Entity):
     def __init__(self, simulator, params) -> None:
         super().__init__(simulator, params)
-        self.reproduce_speed = 10000000
-        self.reproduce_timer = 0
+        self.reproduce_speed = 20
         self.expansion_distance = 10
+        self.drink_speed = 1.5
         self.color = "00ba32"
 
     def animate(self):
@@ -19,10 +19,15 @@ class Plant(Entity):
     def grow(self):
         super().grow()
         self.size += 1
-        self.max_food_reserve += 1
         self.max_water_reserve += 1
         self.max_health += 1
-    
+
+    def drink(self):
+        nb_plants_nearby = len([e for e in self.overlapping_entities if isinstance(e, Plant)])
+        drink_speed = max(self.drink_speed - nb_plants_nearby, 0)
+        self.water_reserve = min(self.max_water_reserve, (drink_speed * self.water_need) + self.water_reserve)
+        self.simulator.logger.add_log(f"{self.id}: Water at {self.water_reserve}")
+
     def reproduce(self):
         if self.reproduce_timer == self.reproduce_speed:
             self.reproduce_timer = 0
