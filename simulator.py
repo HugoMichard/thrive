@@ -53,7 +53,7 @@ class Simulator:
         for entity in existing_entities:
             entity.animate()
             if entity.is_dead:
-                entity.color = 255.
+                entity.color = '000000'
 
     def add_entity(self, entity):
         self.last_entity_id = entity.id

@@ -34,7 +34,7 @@ class Entity:
     def animate(self):
         if self.is_dead:
             self.dead_time += 1
-            if self.corpse_decomposition_speed >= self.dead_time:
+            if self.corpse_decomposition_speed <= self.dead_time:
                 del self.simulator.entities[self.id]
             return
 
@@ -69,3 +69,4 @@ class Entity:
 
     def grow(self):
         self.age += 1
+        self.position_circle = Circle(self.x, self.y, self.size)

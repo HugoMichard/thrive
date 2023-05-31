@@ -7,14 +7,16 @@ class Plant(Entity):
         super().__init__(simulator, params)
         self.reproduce_speed = 20
         self.expansion_distance = 10
-        self.drink_speed = 1.5
+        self.base_drink_speed = 12
+        self.drink_speed = self.base_drink_speed
         self.color = "00ba32"
 
     def animate(self):
         super().animate()
-        self.drink()
-        self.eat()
-        self.reproduce()
+        if not self.is_dead:
+            self.drink()
+            self.eat()
+            self.reproduce()
     
     def grow(self):
         super().grow()
@@ -23,10 +25,13 @@ class Plant(Entity):
         self.max_health += 1
 
     def drink(self):
-        nb_plants_nearby = len([e for e in self.overlapping_entities if isinstance(e, Plant)])
-        drink_speed = max(self.drink_speed - nb_plants_nearby, 0)
-        self.water_reserve = min(self.max_water_reserve, (drink_speed * self.water_need) + self.water_reserve)
-        self.simulator.logger.add_log(f"{self.id}: Water at {self.water_reserve}")
+        total_drink_speed_of_plants_nearby = sum([e.get_alone_drink_speed() for e in self.overlapping_entities if isinstance(e, Plant)]) + self.get_alone_drink_speed()
+        drinking_ratio = self.drink_speed / total_drink_speed_of_plants_nearby
+        self.water_reserve = min(self.max_water_reserve, (drinking_ratio * self.get_alone_drink_speed()) + self.water_reserve)
+        self.simulator.logger.add_log(f"{self.id}: Drink speed {drinking_ratio * self.get_alone_drink_speed()}")
+
+    def get_alone_drink_speed(self):
+        return self.position_circle.area * self.base_drink_speed
 
     def reproduce(self):
         if self.reproduce_timer == self.reproduce_speed:
@@ -36,7 +41,7 @@ class Plant(Entity):
             self.reproduce_timer += 1
 
     def give_birth(self):
-        max_expansion_distance = self.size // 2 + self.expansion_distance
+        max_expansion_distance = self.size + self.expansion_distance
         random_x = np.random.randint(max_expansion_distance) - (max_expansion_distance / 2)
         random_y = np.random.randint(max_expansion_distance) - (max_expansion_distance / 2)
         birth_x = self.x + random_x
